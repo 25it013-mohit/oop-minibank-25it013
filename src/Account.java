@@ -1,6 +1,6 @@
 import java.util.Objects;
 
-public class Account {
+public abstract class Account {
     private final String accountNumber;
     private final String ownerName;
     private long balance;
@@ -33,7 +33,7 @@ public class Account {
     }
 
     public boolean withdraw(long amount) {
-        if (amount <= 0 || amount > balance) {
+        if (amount <= 0 || !canWithdraw(amount)) {
             return false;
         }
 
@@ -82,5 +82,6 @@ public class Account {
     public int hashCode() {
         return Objects.hash(accountNumber);
     }
-
+    public abstract double interestRate();
+    public abstract boolean canWithdraw(long amount);
 }
