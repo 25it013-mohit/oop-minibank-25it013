@@ -1,3 +1,5 @@
+package model;
+import model.Account;
 
 public class SavingsAccount extends Account {
     private long minBalance;

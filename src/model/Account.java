@@ -1,6 +1,8 @@
+package model;
+
 import java.util.Objects;
 
-public abstract class Account {
+public abstract class Account implements Transactable, InterestBearing {
     private final String accountNumber;
     private final String ownerName;
     private long balance;
@@ -59,7 +61,7 @@ public abstract class Account {
 
     @Override
     public String toString() {
-        return "Account Number: " + accountNumber
+        return "model.Account Number: " + accountNumber
                 + ", Owner: " + ownerName
                 + ", Balance: ₹" + balance;
     }

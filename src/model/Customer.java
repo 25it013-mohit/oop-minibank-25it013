@@ -1,4 +1,4 @@
-
+package model;
 public class Customer implements Cloneable {
 
     private String name;

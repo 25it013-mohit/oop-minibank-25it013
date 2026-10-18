@@ -1,3 +1,5 @@
+package model;
+import model.Account;
 
 public class CurrentAccount extends Account {
     private long overdraftLimit;
