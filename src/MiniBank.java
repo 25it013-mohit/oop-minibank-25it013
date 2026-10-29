@@ -6,6 +6,9 @@ import static util.Validator.isValidEmail;
 import java.util.Scanner;
 import util.AnnotationValidator;
 import java.util.List;
+import exception.BankException;
+import exception.InsufficientFundsException;
+import exception.InvalidAmountException;
 
 public class MiniBank {
     record BankInfo(String name, String branch){}
@@ -16,8 +19,30 @@ public class MiniBank {
         TRANSFER,
         EXIT
     }
+    static class DemoResource implements AutoCloseable {
+        @Override
+        public void close() {
+            System.out.println("Resource closed.");
+        }
+    }
 
     static void main(String[] args) {
+        try (DemoResource resource = new DemoResource()) {
+            System.out.println("Using resource.");
+        }
+        model.Account testAccount1 =
+                new model.SavingsAccount("Test", 500, 100);
+
+        try {
+            testAccount1.withdraw(1000);
+        } catch (exception.InsufficientFundsException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Shortfall: " + e.getShortfall());
+        } catch (exception.InvalidAmountException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            System.out.println("Withdrawal attempt finished.");
+        }
         Account negativeAccount = new SavingsAccount("Test", -500, 100);
 
         List<String> errors = AnnotationValidator.validate(negativeAccount);

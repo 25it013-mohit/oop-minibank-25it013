@@ -2,6 +2,8 @@ package model;
 import model.annotation.Id;
 import model.annotation.Positive;
 import model.annotation.MaxLength;
+import exception.InsufficientFundsException;
+import exception.InvalidAmountException;
 
 import java.util.Objects;
 
@@ -23,7 +25,10 @@ public abstract class Account implements Transactable, InterestBearing {
         this.active = true;
 
         if (openingBalance > 0) {
-            deposit(openingBalance);
+            if (openingBalance < 0) {
+                throw new IllegalArgumentException("Opening balance cannot be negative.");
+            }
+            this.balance = openingBalance;
         }
     }
 
@@ -31,18 +36,28 @@ public abstract class Account implements Transactable, InterestBearing {
         this(ownerName, 0);
     }
 
-    public void deposit(long amount) {
+    public void deposit(long amount) throws InvalidAmountException {
         if (amount <= 0) {
-            System.out.println("Deposit amount must be positive.");
-            return;
+            throw new InvalidAmountException(
+                    "Deposit amount must be positive.");
         }
 
         balance += amount;
     }
 
-    public boolean withdraw(long amount) {
-        if (amount <= 0 || !canWithdraw(amount)) {
-            return false;
+    public boolean withdraw(long amount)
+            throws InsufficientFundsException, InvalidAmountException {
+
+        if (amount <= 0) {
+            throw new InvalidAmountException(
+                    "Withdrawal amount must be positive.");
+        }
+
+        if (!canWithdraw(amount)) {
+            long shortfall = amount - balance;
+
+            throw new InsufficientFundsException(
+                    "Insufficient funds for withdrawal.", shortfall);
         }
 
         balance -= amount;
@@ -92,4 +107,15 @@ public abstract class Account implements Transactable, InterestBearing {
     }
     public abstract double interestRate();
     public abstract boolean canWithdraw(long amount);
+    public void transfer(Account to, long amount)
+            throws exception.BankException {
+        try {
+            this.withdraw(amount);
+            to.deposit(amount);
+        } catch (exception.BankException e) {
+            throw e;
+        } finally {
+            System.out.println("Transfer attempt completed.");
+        }
+    }
 }
