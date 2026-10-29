@@ -4,6 +4,8 @@ import service.*;
 import util.*;
 import static util.Validator.isValidEmail;
 import java.util.Scanner;
+import util.AnnotationValidator;
+import java.util.List;
 
 public class MiniBank {
     record BankInfo(String name, String branch){}
@@ -16,6 +18,11 @@ public class MiniBank {
     }
 
     static void main(String[] args) {
+        Account negativeAccount = new SavingsAccount("Test", -500, 100);
+
+        List<String> errors = AnnotationValidator.validate(negativeAccount);
+
+        errors.forEach(System.out::println);
         BankInfo bank = new BankInfo(
                 "MiniBank",
                 "CHARUSAT"
@@ -27,7 +34,6 @@ public class MiniBank {
         System.out.println("Branch: "+bank.branch());
         System.out.println("================================");
         boolean running = true;
-        System.out.println("Email valid: " + isValidEmail("abc@xyz.com"));
 
         Account testAccount = new SavingsAccount("Riya", 5000, 1000);
 
