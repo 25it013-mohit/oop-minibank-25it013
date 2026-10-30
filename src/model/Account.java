@@ -7,7 +7,8 @@ import exception.InvalidAmountException;
 
 import java.util.Objects;
 
-public abstract class Account implements Transactable, InterestBearing, java.io.Serializable {
+public abstract class Account
+        implements Transactable, InterestBearing, java.io.Serializable, Comparable<Account>{
     @Id
     private final String accountNumber;
     @MaxLength(40)
@@ -117,5 +118,9 @@ public abstract class Account implements Transactable, InterestBearing, java.io.
         } finally {
             System.out.println("Transfer attempt completed.");
         }
+    }
+    @Override
+    public int compareTo(Account other) {
+        return this.accountNumber.compareTo(other.accountNumber);
     }
 }

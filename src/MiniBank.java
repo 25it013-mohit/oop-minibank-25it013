@@ -32,8 +32,6 @@ public class MiniBank {
     }
 
     static void main(String[] args) {
-        testTransactionProcessor();
-        demonstrateConcurrency();
         try (DemoResource resource = new DemoResource()) {
             System.out.println("Using resource.");
         }
@@ -298,5 +296,57 @@ public class MiniBank {
         processor.stop();
 
         System.out.println("Final balance: " + account.getBalance());
+    }
+    public static void testAccountStore() {
+        service.AccountStore store = new service.AccountStore();
+
+        model.Account a1 = new model.SavingsAccount("Alice", 5000, 1000);
+        model.Account a2 = new model.SavingsAccount("Bob", 2000, 500);
+        model.Account a3 = new model.SavingsAccount("Charlie", 9000, 2000);
+
+        store.add(a1);
+        store.add(a2);
+        store.add(a3);
+        store.addTransaction("DEPOSIT,AC0001,1000");
+        store.addTransaction("WITHDRAW,AC0002,500");
+
+        System.out.println("\nTransaction history:");
+        for (String transaction : store.getTransactionHistory()) {
+            System.out.println(transaction);
+        }
+
+        System.out.println("Account lookup:");
+        model.Account found = store.get(a2.getAccountNumber());
+        System.out.println(found.getOwnerName() + " - " + found.getBalance());
+
+        System.out.println("\nAccounts sorted by balance:");
+        for (model.Account account : store.sortedByBalance()) {
+            System.out.println(
+                    account.getAccountNumber() + " - "
+                            + account.getOwnerName() + " - "
+                            + account.getBalance()
+            );
+        }
+    }
+    public static void testConcurrentAccountStore() {
+        service.TransactionProcessor processor =
+                new service.TransactionProcessor();
+
+        model.Account account =
+                new model.SavingsAccount("Test User", 5000, 1000);
+
+        processor.addAccount(account);
+
+        model.Account found =
+                processor.getAccount(account.getAccountNumber());
+
+        if (found != null) {
+            System.out.println("Account found: " + found.getOwnerName());
+            System.out.println("Balance: " + found.getBalance());
+        } else {
+            System.out.println("Account not found.");
+        }
+
+        processor.stop();
     }
 }
