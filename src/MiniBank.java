@@ -28,6 +28,7 @@ public class MiniBank {
     }
 
     static void main(String[] args) {
+        testTransactionProcessor();
         demonstrateConcurrency();
         try (DemoResource resource = new DemoResource()) {
             System.out.println("Using resource.");
@@ -249,5 +250,19 @@ public class MiniBank {
                 "Final balance before synchronization: "
                         + account.getBalance()
         );
+    }
+    static void testTransactionProcessor() {
+        Account account = new SavingsAccount("Test User", 10000, 1000);
+
+        TransactionProcessor processor = new TransactionProcessor();
+
+        processor.submit(new TransactionTask(account, true, 2000));
+        processor.submit(new TransactionTask(account, false, 1000));
+        processor.submit(new TransactionTask(account, true, 500));
+        processor.submit(new TransactionTask(account, false, 500));
+
+        processor.stop();
+
+        System.out.println("Final balance: " + account.getBalance());
     }
 }
