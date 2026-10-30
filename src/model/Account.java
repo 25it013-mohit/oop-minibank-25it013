@@ -7,7 +7,7 @@ import exception.InvalidAmountException;
 
 import java.util.Objects;
 
-public abstract class Account implements Transactable, InterestBearing {
+public abstract class Account implements Transactable, InterestBearing, java.io.Serializable {
     @Id
     private final String accountNumber;
     @MaxLength(40)
@@ -15,6 +15,7 @@ public abstract class Account implements Transactable, InterestBearing {
     @Positive
     private long balance;
     private boolean active;
+    private static final long serialVersionUID = 1L;
 
     private static int accountCounter = 0;
 

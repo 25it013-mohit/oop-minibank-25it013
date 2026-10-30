@@ -10,6 +10,10 @@ import exception.BankException;
 import exception.InsufficientFundsException;
 import exception.InvalidAmountException;
 import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import service.StatePersister;
+import service.ReportGenerator;
 
 public class MiniBank {
     record BankInfo(String name, String branch){}
@@ -126,6 +130,36 @@ public class MiniBank {
         }
 
         sc.close();
+        try {
+            Path dataFile = Path.of("data", "accounts.ser");
+            Files.createDirectories(dataFile.getParent());
+
+            // Save accounts
+            StatePersister.save(accounts.toArray(new Account[0]), dataFile);
+            System.out.println("Accounts saved successfully.");
+
+            // Reload into a new array
+            Account[] loadedAccounts = StatePersister.load(dataFile);
+
+            System.out.println("\nReloaded Accounts:");
+            for (Account account : loadedAccounts) {
+                System.out.println(
+                        account.getAccountNumber() + " | "
+                                + account.getOwnerName() + " | "
+                                + account.getBalance()
+                );
+            }
+
+            // Generate report
+            Path logsFolder = Path.of("logs");
+            Path reportFile = Path.of("reports", "summary.txt");
+            Files.createDirectories(reportFile.getParent());
+
+            ReportGenerator.generate(logsFolder, reportFile);
+
+        } catch (Exception e) {
+            System.out.println("Persistence/report error: " + e.getMessage());
+        }
     }
     static void openAccount(Scanner sc, List<Account> accounts) {
         sc.nextLine();

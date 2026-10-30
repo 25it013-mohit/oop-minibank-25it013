@@ -2,6 +2,7 @@ package model;
 import model.Account;
 
 public class CurrentAccount extends Account {
+    private static final long serialVersionUID = 1L;
     private long overdraftLimit;
 
     public CurrentAccount(String ownerName, long openingBalance, long overdraftLimit) {
