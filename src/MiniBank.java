@@ -32,6 +32,7 @@ public class MiniBank {
     }
 
     static void main(String[] args) {
+        testRepository();
         try (DemoResource resource = new DemoResource()) {
             System.out.println("Using resource.");
         }
@@ -348,5 +349,46 @@ public class MiniBank {
         }
 
         processor.stop();
+    }
+    public static void testRepository() {
+        service.Repository<model.Account> repository =
+                new service.Repository<>();
+
+        model.Account a1 =
+                new model.SavingsAccount("Alice", 5000, 1000);
+
+        model.Account a2 =
+                new model.SavingsAccount("Bob", 2000, 500);
+
+        model.Account a3 =
+                new model.SavingsAccount("Charlie", 9000, 2000);
+
+        repository.saveAll(a1, a2, a3);
+
+        System.out.println("Account lookup:");
+        model.Account found = repository.findById(a2.getAccountNumber());
+
+        if (found != null) {
+            System.out.println(found.getOwnerName() + " - " + found.getBalance());
+        }
+
+        System.out.println("\nAll repository accounts:");
+        for (model.Account account : repository.findAll()) {
+            System.out.println(
+                    account.getAccountNumber() + " - "
+                            + account.getOwnerName() + " - "
+                            + account.getBalance()
+            );
+        }
+        System.out.println("\nDeleting Alice's account:");
+        boolean deleted = repository.delete(a1.getAccountNumber());
+        System.out.println("Deleted: " + deleted);
+
+        System.out.println("Account still exists: "
+                + (repository.findById(a1.getAccountNumber()) != null));
+
+        System.out.println("\nAverage balance: "
+                + service.Repository.average(
+                new Integer[]{5000, 2000, 9000}));
     }
 }
