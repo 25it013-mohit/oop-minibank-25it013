@@ -1,6 +1,6 @@
 package exception;
 
-public class InsufficientFundsException extends BankException {
+public class InsufficientFundsException extends exception.BankException {
 
     private long shortfall;
 
