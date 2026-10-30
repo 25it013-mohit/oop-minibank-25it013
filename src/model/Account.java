@@ -19,24 +19,22 @@ public abstract class Account implements Transactable, InterestBearing {
     private static int accountCounter = 0;
 
     public Account(String ownerName, long openingBalance) {
+        if (openingBalance < 0) {
+            throw new IllegalArgumentException(
+                    "Opening balance cannot be negative.");
+        }
+
         this.accountNumber = String.format("AC%04d", ++accountCounter);
         this.ownerName = ownerName;
-        this.balance = 0;
+        this.balance = openingBalance;
         this.active = true;
-
-        if (openingBalance > 0) {
-            if (openingBalance < 0) {
-                throw new IllegalArgumentException("Opening balance cannot be negative.");
-            }
-            this.balance = openingBalance;
-        }
     }
 
     public Account(String ownerName) {
         this(ownerName, 0);
     }
 
-    public void deposit(long amount) throws InvalidAmountException {
+    public synchronized void deposit(long amount) throws InvalidAmountException {
         if (amount <= 0) {
             throw new InvalidAmountException(
                     "Deposit amount must be positive.");
@@ -45,7 +43,7 @@ public abstract class Account implements Transactable, InterestBearing {
         balance += amount;
     }
 
-    public boolean withdraw(long amount)
+    public synchronized boolean withdraw(long amount)
             throws InsufficientFundsException, InvalidAmountException {
 
         if (amount <= 0) {
@@ -82,7 +80,8 @@ public abstract class Account implements Transactable, InterestBearing {
 
     @Override
     public String toString() {
-        return "model.Account Number: " + accountNumber
+        return "5" +
+                "Account Number: " + accountNumber
                 + ", Owner: " + ownerName
                 + ", Balance: ₹" + balance;
     }

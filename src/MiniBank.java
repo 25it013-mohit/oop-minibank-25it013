@@ -9,6 +9,7 @@ import java.util.List;
 import exception.BankException;
 import exception.InsufficientFundsException;
 import exception.InvalidAmountException;
+import java.util.ArrayList;
 
 public class MiniBank {
     record BankInfo(String name, String branch){}
@@ -27,6 +28,7 @@ public class MiniBank {
     }
 
     static void main(String[] args) {
+        demonstrateConcurrency();
         try (DemoResource resource = new DemoResource()) {
             System.out.println("Using resource.");
         }
@@ -43,7 +45,7 @@ public class MiniBank {
         } finally {
             System.out.println("Withdrawal attempt finished.");
         }
-        Account negativeAccount = new SavingsAccount("Test", -500, 100);
+        Account negativeAccount = new SavingsAccount("Test", 500, 100);
 
         List<String> errors = AnnotationValidator.validate(negativeAccount);
 
@@ -54,6 +56,7 @@ public class MiniBank {
         );
 
         Scanner sc = new Scanner(System.in);
+        List<Account> accounts = new ArrayList<>();
         System.out.println("================================");
         System.out.println(bank.name());
         System.out.println("Branch: "+bank.branch());
@@ -81,7 +84,7 @@ public class MiniBank {
                 + testAccount.yearlyInterest());
 
         while(running){
-            System.out.println("\n1. Open model.Account");
+            System.out.println("\n1. Open Account");
             System.out.println("2. Deposit");
             System.out.println("3. Withdraw");
             System.out.println("4. Transfer");
@@ -103,8 +106,10 @@ public class MiniBank {
             MenuOption option = MenuOption.values()[choice - 1];
 
             String message = switch (option) {
-                case OPEN_ACCOUNT ->
-                        "Open model.Account - to be implemented in a later lab";
+                case OPEN_ACCOUNT -> {
+                    openAccount(sc, accounts);
+                    yield "Returning to main menu.";
+                }
                 case DEPOSIT ->
                         "Deposit - to be implemented in a later lab";
                 case WITHDRAW ->
@@ -120,5 +125,129 @@ public class MiniBank {
         }
 
         sc.close();
+    }
+    static void openAccount(Scanner sc, List<Account> accounts) {
+        sc.nextLine();
+
+        System.out.print("Enter owner name: ");
+        String name = sc.nextLine().trim();
+
+        if (name.isEmpty()) {
+            System.out.println("Owner name cannot be empty.");
+            return;
+        }
+
+        System.out.println("Choose account type:");
+        System.out.println("1. Savings Account");
+        System.out.println("2. Current Account");
+        System.out.println("3. Fixed Deposit Account");
+        System.out.print("Enter choice: ");
+
+        if (!sc.hasNextInt()) {
+            System.out.println("Invalid account type.");
+            sc.nextLine();
+            return;
+        }
+
+        int type = sc.nextInt();
+
+        if (type < 1 || type > 3) {
+            System.out.println("Invalid account type.");
+            return;
+        }
+
+        System.out.print("Enter opening balance: ");
+
+        if (!sc.hasNextLong()) {
+            System.out.println("Please enter a valid amount.");
+            sc.nextLine();
+            return;
+        }
+
+        long balance = sc.nextLong();
+
+        if (balance < 0) {
+            System.out.println("Opening balance cannot be negative.");
+            return;
+        }
+
+        Account account;
+
+        switch (type) {
+            case 1 -> {
+                System.out.print("Enter minimum balance: ");
+                if (!sc.hasNextLong()) {
+                    System.out.println("Invalid minimum balance.");
+                    sc.nextLine();
+                    return;
+                }
+                long minimum = sc.nextLong();
+
+                if (minimum < 0 || minimum > balance) {
+                    System.out.println("Minimum balance must be between 0 and opening balance.");
+                    return;
+                }
+
+                account = new SavingsAccount(name, balance, minimum);
+            }
+            case 2 -> {
+                System.out.print("Enter overdraft limit: ");
+                if (!sc.hasNextLong()) {
+                    System.out.println("Invalid overdraft limit.");
+                    sc.nextLine();
+                    return;
+                }
+                long limit = sc.nextLong();
+
+                if (limit < 0) {
+                    System.out.println("Overdraft limit cannot be negative.");
+                    return;
+                }
+
+                account = new CurrentAccount(name, balance, limit);
+            }
+            case 3 -> account = new FixedDepositAccount(name, balance);
+            default -> {
+                System.out.println("Invalid account type.");
+                return;
+            }
+        }
+
+        accounts.add(account);
+
+        System.out.println("Account opened successfully!");
+        System.out.println(account);
+    }
+    static void demonstrateConcurrency() {
+        Account account = new SavingsAccount("Thread Test", 0, 0);
+
+        int threadCount = 10;
+        int times = 1000;
+
+        Thread[] threads = new Thread[threadCount];
+
+        for (int i = 0; i < threadCount; i++) {
+            threads[i] = new Thread(
+                    new AccountWorker(account, times, 1),
+                    "Bank-Worker-" + (i + 1)
+            );
+
+            threads[i].start();
+        }
+
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("Thread execution interrupted.");
+                return;
+            }
+        }
+
+        System.out.println(
+                "Final balance before synchronization: "
+                        + account.getBalance()
+        );
     }
 }
